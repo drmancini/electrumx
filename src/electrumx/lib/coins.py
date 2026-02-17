@@ -327,6 +327,7 @@ class Bitcoin(BitcoinMixin, Coin):
         'electrum1.cipig.net t10000 s20000',
         'ulrichard.ch s',
         'hodlers.beer s',
+        '5.9.83.108 s',
         'v7gtzf7nua6hdmb2wtqaqioqmesdb4xrlly4zwr7bvayxv2bpg665pqd.onion t'
         'qeqgdlw2ezf3uabook2ny3lztjxxzeyyoqw2k7cempzvqpknbmevhmyd.onion t'
         'kciybn4d4vuqvobdl2kdp3r2rudqbqvsymqwg4jomzft6m6gaibaf6yd.onion t'
