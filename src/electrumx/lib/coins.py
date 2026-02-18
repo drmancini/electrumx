@@ -46,6 +46,7 @@ import electrumx.lib.tx as lib_tx
 from electrumx.lib.tx import Tx
 import electrumx.lib.tx_dash as lib_tx_dash
 import electrumx.lib.tx_axe as lib_tx_axe
+import electrumx.lib.tx_raptoreum as lib_tx_raptoreum
 import electrumx.server.block_processor as block_proc
 import electrumx.server.daemon as daemon
 from electrumx.server.session import (ElectrumX, DashElectrumX,
@@ -1364,6 +1365,75 @@ class DashRegtest(DashTestnet):
     PEERS = []
     TX_COUNT_HEIGHT = 1
     TX_COUNT = 1
+
+
+# Source: https://github.com/Raptor3um/raptoreum
+class Raptoreum(Coin):
+    NAME = "Raptoreum"
+    SHORTNAME = "RTM"
+    NET = "mainnet"
+    XPUB_VERBYTES = bytes.fromhex("0488b21e")
+    XPRV_VERBYTES = bytes.fromhex("0488ade4")
+    GENESIS_HASH = ('b79e5df07278b9567ada8fc655ffbfa9'
+                    'd3f586dc38da3dd93053686f41caeea0')
+    P2PKH_VERBYTE = bytes.fromhex("3c")
+    P2SH_VERBYTES = (bytes.fromhex("10"),)
+    WIF_BYTE = bytes.fromhex("80")
+    TX_COUNT_HEIGHT = 1282758
+    TX_COUNT = 5235158
+    TX_PER_BLOCK = 4
+    RPC_PORT = 10225
+    REORG_LIMIT = 1000
+    PEERS = []
+    SESSIONCLS = DashElectrumX
+    DAEMON = daemon.DashDaemon
+    DESERIALIZER = lib_tx_dash.DeserializerDash
+
+
+class RaptoreumTestnet(Raptoreum):
+    SHORTNAME = "tRTM"
+    NET = "testnet"
+    XPUB_VERBYTES = bytes.fromhex("043587cf")
+    XPRV_VERBYTES = bytes.fromhex("04358394")
+    GENESIS_HASH = ('bbab22066081d3b466abd734de914e80'
+                    '92abf4e959bcd0fff978297c41591b23')
+    P2PKH_VERBYTE = bytes.fromhex("7b")
+    P2SH_VERBYTES = (bytes.fromhex("13"),)
+    WIF_BYTE = bytes.fromhex("ef")
+    TX_COUNT_HEIGHT = 584424
+    TX_COUNT = 1968273
+    TX_PER_BLOCK = 3
+    RPC_PORT = 10224
+    PEERS = []
+
+
+# Source: https://github.com/osmium-labs/osmium
+class Osmium(AuxPowMixin, Coin):
+    NAME = "Osmium"
+    SHORTNAME = "OSMI"
+    NET = "mainnet"
+    XPUB_VERBYTES = bytes.fromhex("0488b21e")
+    XPRV_VERBYTES = bytes.fromhex("0488ade4")
+    GENESIS_HASH = ('000007a47e3912a2e5d08e54f6a8455d'
+                    'a0cf77e1d6ff10079133309250d58536')
+    P2PKH_VERBYTE = bytes.fromhex("3f")
+    P2SH_VERBYTES = (bytes.fromhex("0f"),)
+    WIF_BYTE = bytes.fromhex("4b")
+    TX_COUNT_HEIGHT = 620436
+    TX_COUNT = 955745
+    TX_PER_BLOCK = 2
+    RPC_PORT = 9968
+    REORG_LIMIT = 1000
+    PEERS = []
+    SESSIONCLS = DashElectrumX
+    DAEMON = daemon.DashDaemon
+    DESERIALIZER = lib_tx_raptoreum.DeserializerAuxPowDash
+
+    @classmethod
+    def header_hash(cls, header):
+        '''Given a header return the hash.'''
+        import dash_hash
+        return dash_hash.getPoWHash(header[:cls.BASIC_HEADER_SIZE])
 
 
 class Argentum(AuxPowMixin, Coin):
