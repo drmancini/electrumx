@@ -49,6 +49,9 @@ requires both AuxPoW header reading and Dash DIP2 transaction
 deserialization.  MRO ensures:
   - read_header comes from DeserializerAuxPow
   - read_tx comes from DeserializerDash
+  - read_auxpow is overridden to omit hashBlock (OSMI's
+    modern Dash-based CAuxPow format does not serialize
+    CMerkleTx::hashBlock)
 '''
 
 from electrumx.lib.tx import DeserializerAuxPow
@@ -65,5 +68,36 @@ class DeserializerAuxPowDash(DeserializerAuxPow, DeserializerDash):
       AuxPoW block headers)
     - read_tx(): from DeserializerDash (handles DIP2 special transaction
       extra payloads)
+    - read_auxpow(): overridden to omit hashBlock (see below)
+
+    Osmium's AuxPoW wire format omits the 32-byte CMerkleTx::hashBlock
+    field that older AuxPoW implementations (Namecoin, Dogecoin) include.
+    Modern Dash-based forks removed hashBlock from serialization, so the
+    AuxPoW proof is:
+
+        coinbase_tx | merkle_branch | merkle_index | chain_merkle_branch
+                    | chain_index | parent_header(80)
+
+    The upstream DeserializerAuxPow.read_auxpow() expects hashBlock
+    between coinbase_tx and merkle_branch, reading 32 extra bytes that
+    shift all subsequent fields and cause IndexError on non-trivial
+    AuxPoW proofs.
     '''
-    pass
+
+    def read_auxpow(self):
+        '''Read CAuxPow data without the hashBlock field.'''
+        start = self.cursor
+
+        self.read_tx()                                  # AuxPow coinbase tx
+        # No hashBlock — Osmium's CAuxPow omits this field
+        merkle_size = self._read_varint()
+        self.cursor += 32 * merkle_size                 # Merkle branch
+        self.cursor += 4                                # Merkle index
+        merkle_size = self._read_varint()
+        self.cursor += 32 * merkle_size                 # Chain merkle branch
+        self.cursor += 4                                # Chain index
+        self.cursor += 80                               # Parent block header
+
+        end = self.cursor
+        self.cursor = start
+        return self._read_nbytes(end - start)
